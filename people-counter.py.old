@@ -4,10 +4,12 @@ import numpy as np
 # YOLO modelini yükle
 net = cv2.dnn.readNet("yolov3.weights", "yolov3.cfg")
 layer_names = net.getLayerNames()
-output_layers = [layer_names[i - 1] for i in net.getUnconnectedOutLayers().flatten()]
+#output_layers = [layer_names[i[0] - 1] for i in net.getUnconnectedOutLayers()]
+output_layers = [layer_names[i - 1] for i in net.getUnconnectedOutLayers()]
 
 cap = cv2.VideoCapture("IMG_0093-720p.mp4")
-line_x = 600  # Dikey çizgi x koordinatı (kamera çözünürlüğüne göre ayarlayın)
+#line_y = 300
+line_x = 600
 girenler = 0
 cikanlar = 0
 
@@ -30,23 +32,22 @@ while True:
             class_id = np.argmax(scores)
             confidence = scores[class_id]
             if class_id == 0 and confidence > 0.5:  # 0: 'person' sınıfı
-                merkez_x = int(detection[0] * width)  # X koordinatı önemli
+                merkez_x = int(detection[0] * width)
                 merkez_y = int(detection[1] * height)
                 insanlar.append((merkez_x, merkez_y))
 
-    # Yön tespiti (DİKEY ÇİZGİ)
-    girenler = 0
-    cikanlar = 0
+    # Yön tespiti
     for (x, y) in insanlar:
-        if x < line_x:  # Çizginin solundan sağına geçerse "GİREN"
+        if x < line_x:
             girenler += 1
-        else:           # Çizginin sağından soluna geçerse "ÇIKAN"
+        else:
             cikanlar += 1
 
-    # Görselleştirme (Dikey çizgi)
-    cv2.line(frame, (line_x, 0), (line_x, height), (0, 255, 0), 2)  # Dikey çizgi
-    cv2.putText(frame, f"Soldakiler: {girenler}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-    cv2.putText(frame, f"Sagdakiler: {cikanlar}", (10, 70), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+    # Görselleştirme
+    #cv2.line(frame, (0, line_y), (width, line_y), (0, 255, 0), 2)
+    cv2.line(frame, (line_x, 0), (line_x, height), (0, 255, 0), 2)
+    cv2.putText(frame, f"GIREN (AI): {girenler}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+    cv2.putText(frame, f"CIKAN (AI): {cikanlar}", (10, 70), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
     cv2.imshow("AI Sayim", frame)
 
     if cv2.waitKey(1) & 0xFF == ord('q'):
